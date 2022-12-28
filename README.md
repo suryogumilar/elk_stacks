@@ -74,7 +74,12 @@ then restart elasticsearch and kibana. Next we can add user and password and als
 
 Creating Dashboard and spaces and asigning it to created user are also done using *elastic* user or other assigned *superuser*
 
-#### configure logstash security
+Creating Index management and Index pattern also done using the same user after some indices has been submitted through elastic servers
+
+### configure logstash security through Kibana
+
+> Note that **Management > Roles** can be accesed through [**Stack management menu**](http://kibana_host:kibana_port/app/management)
+
 
 Use the the **Management > Roles** UI in Kibana or the role API to create a `logstash_writer` role. 
 
@@ -88,6 +93,7 @@ And then Create a `logstash_internal` user and assign it the `logstash_writer` r
 
 test :
 
+```
 curl -u logstash_internal:password -X PUT "[elastic_host]:[elastic_port]/logstash-000001?pretty" -H 'Content-Type: application/json' -d'
 {
   "settings": {
@@ -98,6 +104,55 @@ curl -u logstash_internal:password -X PUT "[elastic_host]:[elastic_port]/logstas
   }
 }
 '
+```
+
+or run logstash agent and check if the indices were submitted and can be searched through **Index Management** in Kibana **Stack Management**
+
+example running logstash agent on remote monitored machines
+```
+## enter into directory where logstash installed 
+## or extracted
+
+cd logstash-7.10.2
+./bin/logstash -f /home/apps/logstash/logstash.conf
+```
+
+
+### Kibana space and dashboard for viewer user 
+
+#### Create space
+
+From space management create new space for viewing dashboards, name it for example: `dashboard_view` also set its features
+
+and after that create role that can access this space 
+
+#### Create role and user for viewing dashboard (through space)
+
+login using *elastic* user to create new user and role to display dashboard through newly created space
+
+Use the the **Management > Roles** UI in Kibana or the role API to create a `kibana_dashboard_viewer` role. 
+
+For **Indices** add default `logstash-*`
+
+For **cluster** privileges, add `monitor`. 
+
+For **indices** privileges, add `manage`, `monitor`, `read`. `read_cross_cluster`, and `view_index_metadata`. 
+
+Grant its access to Kibana. Give 'All' privileges if you want for this user to be able to access Index management and Index pattern.
+
+Click `create role`.
+
+Create also user with the newly created roles. Forexample 
+user is `kibana_dv_user1` and assign `kibana_dashboard_viewer` role 
+
+Tes by login into Kibana in another new session using the created user
+
+
+Now you can access index management and index pattern to define metrices and displaying it to a dashboard
+### Creating Index management and Index pattern
+
+#### Create dahsboard
+
 
 
 ## link for elastics and kibana
