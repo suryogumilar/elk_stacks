@@ -1,0 +1,51 @@
+version: '3'
+
+services:
+  elasticsearch:
+    container_name: elasticsearch-service
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+    volumes: 
+      - ./data:/usr/share/elasticsearch/data
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    ports:
+      - 9200:9200
+      - 9300:9300
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    labels:
+      ELK_STACK: "true"
+    networks:
+      default:
+        aliases:
+          - elasticsearch
+  kibana-service:
+    container_name: kibana-service
+    image: docker.elastic.co/kibana/kibana:7.10.2
+    ports: 
+      - 5601:5601
+    volumes:
+      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    labels:
+      ELK_STACK: "true"
+    depends_on: 
+      - elasticsearch
+  logstash-service:
+    container_name: logstash-service
+    image: docker.elastic.co/logstash/logstash:7.10.2
+    volumes:
+      - ./logstash/logstash.yaml:/usr/share/logstash/config/logstash.yml:ro
+      - ./logstash/logstash_filebeat.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./logstash/patterns/:/etc/logstash/patterns/:ro
+    ports:
+      - 9600:9600
+      - "5044:5044/tcp"
+      - "5044:5044/udp"
+    environment:
+      - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
+      - LGS_PWD=logstashpwd
+      - LOGSTASH_KEYSTORE_PASS=password
+    labels:
+      ELK_STACK: "true"
+    depends_on: 
+      - elasticsearch      

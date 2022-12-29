@@ -6,8 +6,16 @@
 server.name: kibana
 server.host: 0.0.0.0
 elasticsearch.hosts: [ "http://elasticsearch:9200" ]
-elasticsearch.username: "kibana"
-elasticsearch.password: "password"
+elasticsearch.username: "kibana_system"
+
+
+##  instead of using `elasticsearch.password` entry
+##  in this kibana.yml file, we use command:
+##  `kibana-keystore add elasticsearch.password`
+##  int the kibana environment,
+##  and When prompted, enter the password for the 
+##  kibana_system user. 
+#elasticsearch.password: "password"
 
 # kalau menggunakan image kibana versi oss, yg dibawah ini ga perlu
 #xpack.monitoring.ui.container.elasticsearch.enabled: false

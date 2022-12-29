@@ -70,12 +70,50 @@ Reenter password for [remote_monitoring_user]:
 
 ```
 
+some explanation about users:
+
+`elastic`
+   A built-in superuser.
+
+`kibana_system`
+   The user Kibana uses to connect and communicate with Elasticsearch.
+   
+`logstash_system`
+   The user Logstash uses when storing monitoring information in Elasticsearch.
+   
+`beats_system`
+   The user the Beats use when storing monitoring information in Elasticsearch.
+   
+`apm_system`
+   The user the APM server uses when storing monitoring information in Elasticsearch.
+   
+`remote_monitoring_user`
+   The user Metricbeat uses when collecting and storing monitoring information in Elasticsearch. It has the `remote_monitoring_agent` and `remote_monitoring_collector` built-in roles.
+
+>
+The built-in users serve specific purposes and are not intended for general use. In particular, do not use the elastic superuser unless full access to the cluster is required. Instead, create users that have the minimum necessary roles or privileges for their activities.
+
 then restart elasticsearch and kibana. Next we can add user and password and also role in Kibana using *elastic* user as *superuser*. 
 
 Creating Dashboard and spaces and asigning it to created user are also done using *elastic* user or other assigned *superuser*
 
 Creating Index management and Index pattern also done using the same user after some indices has been submitted through elastic servers
 
+### Kibana keystore
+
+We can use keystore to store password instead store it in `kibana.yml` file as entry `elasticsearch.password` as a plain text.
+
+ - Create the Kibana keystore:   
+   `kibana-keystore create`
+ - Add the password for the `kibana_system` user to the Kibana keystore:   
+   `kibana-keystore add elasticsearch.password`   
+   ```
+   bash-4.4$ kibana-keystore add elasticsearch.password
+   Enter value for elasticsearch.password: *********
+
+   ```
+ - Restart Kibana by kiling its PID and run `kibana` command or just restart docker container if we use docker   
+   `kibana` 
 ### configure logstash security through Kibana
 
 > Note that **Management > Roles** can be accesed through [**Stack management menu**](http://kibana_host:kibana_port/app/management)
@@ -89,7 +127,9 @@ For **indices** privileges, add `write`, `create`, and `create_index`. For **Ind
 
 Add `manage_ilm` for cluster and `manage` and `manage_ilm` for indices if you plan to use index lifecycle management.
 
-And then Create a `logstash_internal` user and assign it the `logstash_writer` role. You can create users from the **Management > Users** UI in Kibana
+And then Create a `logstash_internal` user and assign it the `logstash_writer` role. You can create users from the **Management > Users** UI in Kibana. 
+
+Also add `logstash_system` role to enable monitoring elastics
 
 test :
 
@@ -109,6 +149,7 @@ curl -u logstash_internal:password -X PUT "[elastic_host]:[elastic_port]/logstas
 or run logstash agent and check if the indices were submitted and can be searched through **Index Management** in Kibana **Stack Management**
 
 example running logstash agent on remote monitored machines
+
 ```
 ## enter into directory where logstash installed 
 ## or extracted
@@ -117,6 +158,28 @@ cd logstash-7.10.2
 ./bin/logstash -f /home/apps/logstash/logstash.conf
 ```
 
+Or run logstash instances that connected to elasticsearch if we want to use it to digest/aggregates filebeat messages from other monitored resources
+
+### configure logstash security keystore
+
+
+We can use keystore to store password instead store it in `logstash.yml` file as a plain text.
+ - set envi `LOGSTASH_KEYSTORE_PASS`
+ - Create the logstash keystore:   
+   `logstash-keystore create`
+ - Add the password for the `logstash_internal` user to the logstash keystore:   
+   `logstash-keystore add LGS_PWD`   
+   ```
+   bash-4.2$ logstash-keystore add LGS_PWD
+Using bundled JDK: /usr/share/logstash/jdk
+OpenJDK 64-Bit Server VM warning: Option UseConcMarkSweepGC was deprecated in version 9.0 and will likely be removed in a future release.
+
+Enter value for LGS_PWD:
+Added 'lgs_pwd' to the Logstash keystore.
+
+
+   ```
+ - Restart logstash
 
 ### Kibana space and dashboard for viewer user 
 
@@ -190,3 +253,5 @@ ref:
 #### authentication
  -  https://forum.uipath.com/t/enable-basic-authentication-on-elasticsearch-and-kibana/410484
  - https://www.elastic.co/guide/en/logstash/7.10/ls-security.html
+ - https://www.elastic.co/guide/en/elasticsearch/reference/7.17/security-minimal-setup.html
+ - https://www.elastic.co/guide/en/elasticsearch/reference/current/built-in-users.html

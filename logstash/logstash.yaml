@@ -1,0 +1,7 @@
+http.host:  "0.0.0.0"
+http.port: 9600
+xpack.monitoring.enabled: true
+xpack.monitoring.elasticsearch.hosts: [ "http://elasticsearch:9200" ]
+xpack.monitoring.elasticsearch.username: logstash_internal
+xpack.monitoring.elasticsearch.password: "${LGS_PWD}"
+xpack.monitoring.enabled: true
