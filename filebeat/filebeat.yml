@@ -1,0 +1,8 @@
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths: /applog/keysign/*.log
+
+output.logstash:
+  # The Logstash hosts
+  hosts: ["logstash-service:5044"]

@@ -169,17 +169,39 @@ We can use keystore to store password instead store it in `logstash.yml` file as
    `logstash-keystore create`
  - Add the password for the `logstash_internal` user to the logstash keystore:   
    `logstash-keystore add LGS_PWD`   
+   
    ```
    bash-4.2$ logstash-keystore add LGS_PWD
-Using bundled JDK: /usr/share/logstash/jdk
-OpenJDK 64-Bit Server VM warning: Option UseConcMarkSweepGC was deprecated in version 9.0 and will likely be removed in a future release.
+   Using bundled JDK: /usr/share/logstash/jdk
+   OpenJDK 64-Bit Server VM warning: Option UseConcMarkSweepGC was deprecated in version 9.0 and will likely be removed in a future release.
 
-Enter value for LGS_PWD:
-Added 'lgs_pwd' to the Logstash keystore.
-
-
+   Enter value for LGS_PWD:
+   Added 'lgs_pwd' to the Logstash keystore.
    ```
+   
  - Restart logstash
+
+
+## Run Filebeat
+
+Run filebeat in each monitored machines
+
+1. Install filebeat
+   ```
+   ## get the binary
+   curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.10.2-linux-x86_64.tar.gz
+   
+   ## extract it
+   tar xzvf filebeat-7.10.2-linux-x86_64.tar.gz
+   ```
+2. Edit `filebeat.yml`
+3. Check modules
+   `./filebeat modules list`
+4. enable logstash
+   `./filebeat modules enable logstash`   
+5. start filebeat
+   `./filebeat -e`
+
 
 ### Kibana space and dashboard for viewer user 
 
@@ -214,9 +236,21 @@ Tes by login into Kibana in another new session using the created user
 Now you can access index management and index pattern to define metrices and displaying it to a dashboard
 ### Creating Index management and Index pattern
 
+ - access [home dashboard kibana](http://kibana_host:5601/app/home)
+ - access [index management](http://kibana_host:5601/app/management/data/index_management/indices)
+ - make sure log from logstash is in indices list
+ - access [index pattern](http://kibana_host:5601/app/management/kibana/indexPatterns) to create entry (Create index pattern menu)
+ - Define an index pattern: choose index logstash that is available (for example `logstash-*`)
+ - choose primary time field as global time filter. Then click 'Create Index Pattern'
+ - edit fields inside created index 
+ 
 #### Create dahsboard
 
+Akses space and create necessary dashboard
 
+ - access [dashboard](http://kibana_host:5601/app/dashboards) 
+ - create new dashboard
+ - Add an existing or new object to dashboard
 
 ## link for elastics and kibana
 
