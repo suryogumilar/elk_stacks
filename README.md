@@ -202,6 +202,13 @@ Run filebeat in each monitored machines
 5. start filebeat
    `./filebeat -e`
 
+### run via docker compose
+
+edit `docker-compose_filebeat.yaml` volume to define the log directory location and also edit `filebeat.inputs.path` inside `filebeat.yml` file.
+
+Then run:
+
+`docker-compose --project-name ss_db -f ./docker-compose_filebeat.yaml up -d`
 
 ### Kibana space and dashboard for viewer user 
 
