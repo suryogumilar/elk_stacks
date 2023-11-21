@@ -195,11 +195,33 @@ Run filebeat in each monitored machines
    tar xzvf filebeat-7.10.2-linux-x86_64.tar.gz
    ```
 2. Edit `filebeat.yml`
-3. Check modules
+   ```yaml
+   --example
+   filebeat.inputs:
+   - type: log
+     enabled: true
+     paths:
+     - /opt/logdir/keymgmtva/server-01/*.log
+     - /opt/logdir/signpdfva/server-01/*.log
+
+   output.logstash:
+     # The Logstash hosts
+     hosts: ["logstash-server:5044"]
+
+   filebeat.config.modules:
+     # Glob pattern for configuration loading
+     path: ${path.config}/modules.d/*.yml
+     # Set to true to enable config reloading
+     reload.enabled: false
+     # Period on which files under path should be checked for changes
+     #reload.period: 10s
+
+   ``` 
+4. Check modules
    `./filebeat modules list`
-4. enable logstash
+5. enable logstash
    `./filebeat modules enable logstash`   
-5. start filebeat
+6. start filebeat
    `./filebeat -e`
 
 ### run via docker compose
