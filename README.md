@@ -1,40 +1,192 @@
 # ELK Service
 
+## pull image
+
+`docker pull elasticsearch:7.17.28`
+
+## PKI Infrastructure
+
+using [tools](http://localhost:8079/pkcs11cli/rest/v1/swagger-ui/index.html#/)
+
+#### create key pair for elastics
+
+```json
+
+{
+  "providerName": "BC",
+  "keystorePassword": "xxxx",
+  "keystoreType": "PKCS12",
+  "keystoreFilePath": "D:/.../Elastics/keypairs/elastics.p12",
+  "keyEntry": {
+    "providerName": "BC",
+    "alias": "elastics-search",
+    "keySize": 2048,
+    "validityPeriod": 3650,
+    "algorithm": "RSA",
+    "signatureAlgorithm": "SHA256withRSA",
+    "hosts": [
+      "elastics",
+      "clm.xxxx.co.id",
+      "elastics-dev"
+    ],
+    "crlDistribPointUrls": [
+      
+    ],
+    "ips": [
+      "127.0.0.1", "10.xx.xxx.xx", "10.xx.xxx.xx"
+
+    ],
+    "dn": "CN=Suryo Gumilar Elastics Dev,OU=RnD,O=Fenrir.org,L=Depok,S=West Java,C=ID"
+  }
+}
+```
+
+#### sign the csr
+
+```json
+{
+  "csr": "MIICv...",
+  "caKeyStore": {
+    "keystorePath": "D:/..../Elastics/keypairs/OURCA/skadicaroot.p12",
+    "keystoreType": "PKCS12",
+    "password": "xxxx",
+    "alias": "skadica01",
+    "keyStoreProviderName": "SunJSSE",
+    "outputFormat": "NON_PEM"
+  },
+  "validityPeriod": 3650,
+  "signatureAlgorithm": "SHA256withRSA",
+  "indexPath": "D:/.../keypairs/OURCA/index.txt",
+  "dn": "CN=Suryo Gumilar Elastics Dev,OU=RnD,O=Fenrir.org,L=Depok,S=West Java,C=ID",
+  "isForCa": false,
+  "includeCaCert": true,
+  "keyUsage": [
+    "digitalSignature",
+    "keyAgreement",
+    "keyEncipherment"
+  ],
+  "extendedKeyUsage": [
+    "serverAuth",
+    "clientAuth"
+  ],
+  "crlDistribPointUrls": [
+  ],
+  "hosts": [
+    "elastics",
+      "clm.xxxx.co.id",
+      "elastics-dev"
+  ],
+  "ips": [
+     "127.0.0.1", "10.xx.xxx.xx", "10.xx.xxx.xx"
+  ],
+  "basicConstraintIsCritical": false,
+  "keyUsageIsCritical": false,
+  "extendedKeyUsageIsCritical": false,
+  "outputFormat": "NON_PEM"
+}
+```
+
+#### insert signed cert to the key pair
+
+```json
+
+{
+  "keystorePath": "D:.../Elastics/keypairs/elastics.p12",
+  "keyStoreProviderName": "BC",
+  "keystoreType": "PKCS12",
+  "password": "xxx",
+  "alias": "elastics-search",
+  "cert": [
+  "MIIFyT...."
+]
+}
+```
+
+#### cert location in elastics-search machine
+
+the location of each .key and .crt would be placed in
+
+`/usr/share/elasticsearch/config/certs`
+
+then set this envi:
+
+ - xpack.security.http.ssl.enabled=true
+ - xpack.security.http.ssl.key=certs/xxx/xxx.key 
+ - xpack.security.http.ssl.certificate=certs/xxx/xxx.crt
+ - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
+ - xpack.security.transport.ssl.enabled=true
+ - xpack.security.transport.ssl.key=certs/xxx/xxx.key
+ - xpack.security.transport.ssl.certificate=certs/xxx/xxx.crt
+ - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
+ - xpack.security.transport.ssl.verification_mode=certificate 
+
+## testing image
+
+`docker run -it --name test --rm elasticsearch:7.17.28 bash`
+
+work space : */usr/share/elasticsearch*
+
+certs and key in /usr/share/elasticsearch/config/certs/[node-names]/[node-names].[key&crt]
+
+## dir prep
+
+```sh
+mkdir data
+mkdir certs
+mkdir certs/ca
+mkdir certs/elastics01
+
+touch certs/ca/ca.crt
+
+touch certs/elastics01/elastics01.crt
+touch certs/elastics01/elastics01.key
+
+```
+
+put ca key and certs to certs/ca
+
 ## How to run
 
 ```
 ## run detached
-docker-compose --project-name ss_db -f ./docker-compose.yaml up -d
+docker compose --project-name elastics_search -f ./docker-compose.yaml up -d
 
 ## run elasticsearch detached
-docker-compose --project-name ss_db -f ./docker-compose.yaml up -d elasticsearch 
+docker compose --project-name elastics_search -f ./docker-compose.yaml up -d elasticsearch 
 
 
 ## run elasticsearch undetached
-docker-compose --project-name ss_db -f ./docker-compose.yaml up elasticsearch
+docker compose --project-name elastics_search -f ./docker-compose.yaml up elasticsearch
 
 
 ## stop
-docker-compose --project-name ss_db -f ./docker-compose.yaml stop
+docker compose --project-name elastics_search -f ./docker-compose.yaml stop
 
 ## remove
-docker-compose --project-name ss_db -f ./docker-compose.yaml rm elasticsearch
-docker-compose --project-name ss_db -f ./docker-compose.yaml rm kibana-service
+docker compose --project-name elastics_search -f ./docker-compose.yaml rm elasticsearch
+docker compose --project-name elastics_search -f ./docker-compose.yaml rm kibana-service
 
 ## remove 2 services
-docker-compose --project-name ss_db -f ./docker-compose.yaml rm kibana-service elasticsearch
+docker compose --project-name elastics_search -f ./docker-compose.yaml rm kibana-service elasticsearch
 
 
 #### log
-docker-compose --project-name ss_db -f ./docker-compose.yaml logs --timestamp --follow
+docker compose --project-name elastics_search -f ./docker-compose.yaml logs --timestamp --follow
 
 
 ## stop and remove orphaned (CAREFULL, ALL CONTAINERs WITHIN PROJECT NAME THAT ARE RUNNING WILL BE REMOVED)
 
-docker-compose --project-name ss_db -f ./docker-compose.yaml down --remove-orphans --volumes
+docker compose --project-name elastics_search -f ./docker-compose.yaml down --remove-orphans --volumes
 
 
 ```
+### check if running
+
+open to https://localhost:9200
+
+
+
+
 ## install and run logstash
 
  - wget https://artifacts.elastic.co/downloads/logstash/logstash-7.10.2-linux-x86_64.tar.gz
@@ -195,42 +347,20 @@ Run filebeat in each monitored machines
    tar xzvf filebeat-7.10.2-linux-x86_64.tar.gz
    ```
 2. Edit `filebeat.yml`
-   ```yaml
-   --example
-   filebeat.inputs:
-   - type: log
-     enabled: true
-     paths:
-     - /opt/logdir/keymgmtva/server-01/*.log
-     - /opt/logdir/signpdfva/server-01/*.log
-
-   output.logstash:
-     # The Logstash hosts
-     hosts: ["logstash-server:5044"]
-
-   filebeat.config.modules:
-     # Glob pattern for configuration loading
-     path: ${path.config}/modules.d/*.yml
-     # Set to true to enable config reloading
-     reload.enabled: false
-     # Period on which files under path should be checked for changes
-     #reload.period: 10s
-
-   ``` 
-4. Check modules
+3. Check modules
    `./filebeat modules list`
-5. enable logstash
+4. enable logstash
    `./filebeat modules enable logstash`   
-6. start filebeat
+5. start filebeat
    `./filebeat -e`
 
 ### run via docker compose
 
-edit `docker-compose_filebeat.yaml` volume to define the log directory location and also edit `filebeat.inputs.path` inside `filebeat.yml` file.
+edit `docker compose_filebeat.yaml` volume to define the log directory location and also edit `filebeat.inputs.path` inside `filebeat.yml` file.
 
 Then run:
 
-`docker-compose --project-name ss_db -f ./docker-compose_filebeat.yaml up -d`
+`docker compose --project-name elastics_search -f ./docker compose_filebeat.yaml up -d`
 
 ### Kibana space and dashboard for viewer user 
 
