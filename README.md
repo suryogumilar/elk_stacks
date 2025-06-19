@@ -184,6 +184,9 @@ docker compose --project-name elastics_search -f ./docker-compose.yaml down --re
 
 open to https://localhost:9200
 
+check health:   
+https://localhost:9200/_cluster/health
+
 
 
 
