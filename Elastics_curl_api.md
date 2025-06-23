@@ -51,6 +51,35 @@ curl -s --cacert config/certs/ca/ca.crt -u kibana_system:${ELASTIC_PASSWORD} htt
 curl -s --cacert config/certs/ca/ca.crt -u elastic:${ELASTIC_PASSWORD} https://localhost:9200/_nodes?filter_path=nodes.*.version,nodes.*.http.publish_address,nodes.*.ip
 
 
+### get user's privileges 
+
+curl -s --cacert config/certs/ca/ca.crt -u elastic:${ELASTIC_PASSWORD} https://localhost:9200/_security/user/_privileges
 
 
+#### for privileseg of certain user:
+
+curl -s --cacert config/certs/ca/ca.crt -u some_user:some_password https://localhost:9200/_security/user/_privileges?pretty=true
+
+
+#### for cheking role 
+curl -s --cacert config/certs/ca/ca.crt -u elastic:${ELASTIC_PASSWORD} https://localhost:9200/_security/role/itgc_role_user?pretty=true
+```
+
+
+#### set role to  allow restricted indices to true
+
+```sh
+
+curl -s --cacert config/certs/ca/ca.crt -u elastic:${ELASTIC_PASSWORD} \
+-X POST \
+-H "Content-Type: application/json" \
+-d '{ "indices": [ { "names": [ "ds-logs-itgc_user-default-*"], "privileges": ["all", "manage", "read" ], "allow_restricted_indices": true } ] }' \
+"https://localhost:9200/_security/role/itgc_role_user"
+
+
+curl -s --cacert config/certs/ca/ca.crt -u elastic:${ELASTIC_PASSWORD} \
+-X POST \
+-H "Content-Type: application/json" \
+-d '{ "indices": [ { "names": [ "ds-logs-itgc_user-default-001"], "privileges": ["all", "manage", "read" ], "allow_restricted_indices": true } ] }' \
+"https://localhost:9200/_security/role/itgc_role_user"
 ```
