@@ -10,6 +10,7 @@ using [tools](http://localhost:8079/pkcs11cli/rest/v1/swagger-ui/index.html#/)
 
 #### create key pair for elastics
 
+
 ```json
 
 {
@@ -37,6 +38,37 @@ using [tools](http://localhost:8079/pkcs11cli/rest/v1/swagger-ui/index.html#/)
 
     ],
     "dn": "CN=Suryo Gumilar Elastics Dev,OU=RnD,O=Fenrir.org,L=Depok,S=West Java,C=ID"
+  }
+}
+```
+
+#### create key pair for kibana
+
+```json
+
+{
+  "providerName": "BC",
+  "keystorePassword": "xxxx",
+  "keystoreType": "PKCS12",
+  "keystoreFilePath": "D:/.../keypairs/elastics.p12",
+  "keyEntry": {
+    "providerName": "BC",
+    "alias": "kibana",
+    "keySize": 2048,
+    "validityPeriod": 365,
+    "algorithm": "RSA",
+    "signatureAlgorithm": "SHA256withRSA",
+    "hosts": [
+      "kibana",
+      "kibana-dev"
+    ],
+    "crlDistribPointUrls": [
+      
+    ],
+    "ips": [
+      "10.62.136.11"
+    ],
+    "dn": "CN=Suryo Gumilar Kibana,OU=RnD,O=Fenrir.org,L=Depok,S=West Java,C=ID"
   }
 }
 ```
@@ -72,9 +104,11 @@ using [tools](http://localhost:8079/pkcs11cli/rest/v1/swagger-ui/index.html#/)
   "crlDistribPointUrls": [
   ],
   "hosts": [
-    "elastics",
-      "clm.xxxx.co.id",
-      "elastics-dev"
+     "localhost",
+     "elastics",
+     "elasticsearch01",
+     "clm.xxxx.co.id",
+     "elastics-dev"
   ],
   "ips": [
      "127.0.0.1", "10.xx.xxx.xx", "10.xx.xxx.xx"
@@ -131,15 +165,37 @@ certs and key in /usr/share/elasticsearch/config/certs/[node-names]/[node-names]
 ## dir prep
 
 ```sh
+##  for elastics
 mkdir data
 mkdir certs
 mkdir certs/ca
 mkdir certs/elastics01
 
 touch certs/ca/ca.crt
-
 touch certs/elastics01/elastics01.crt
 touch certs/elastics01/elastics01.key
+
+
+## for kibana
+mkdir kibana-data
+mkdir kibana-certs
+mkdir kibana-certs/ca
+
+touch kibana-certs/ca/ca.crt
+touch kibana-certs/kibana.crt
+touch kibana-certs/kibana.key
+
+touch .env
+```
+
+content of file .env:
+
+
+```
+ELASTIC_PASSWORD=
+CLUSTER_NAME=
+LICENSE=[basic]
+MEM_LIMIT=1073741824
 
 ```
 
@@ -154,6 +210,8 @@ docker compose --project-name elastics_search -f ./docker-compose.yaml up -d
 ## run elasticsearch detached
 docker compose --project-name elastics_search -f ./docker-compose.yaml up -d elasticsearch 
 
+## run kibana detached
+docker compose --project-name elastics_search -f ./docker-compose.yaml up -d kibana
 
 ## run elasticsearch undetached
 docker compose --project-name elastics_search -f ./docker-compose.yaml up elasticsearch
@@ -182,12 +240,19 @@ docker compose --project-name elastics_search -f ./docker-compose.yaml down --re
 ```
 ### check if running
 
+#### Elastics
+
 open to https://localhost:9200
 
 check health:   
 https://localhost:9200/_cluster/health
 
 
+`curl -s --cacert config/certs/ca/ca.crt -u elastic:${ELASTIC_PASSWORD} https://localhost:9200`
+
+### Kibana
+
+acess : https://<your_kibana_host>.com:5601
 
 
 ## install and run logstash
@@ -208,6 +273,10 @@ https://localhost:9200/_cluster/health
 after elastics search is running go to its console, then navigate to "bin" folder present in installation directory of Elasticsearch and run: 
 
 `./bin/elasticsearch-setup-passwords interactive`
+
+or using url also : 
+
+`bin/elasticsearch-setup-passwords interactive --url https://localhost:9200`
 
 ```
 Enter password for [elastic]:

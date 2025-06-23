@@ -3,10 +3,19 @@
 #
 
 # Default Kibana configuration for docker target
-server.name: kibana
-server.host: 0.0.0.0
-elasticsearch.hosts: [ "http://elasticsearch:9200" ]
-elasticsearch.username: "kibana_system"
+server:
+  name: kibana
+  host: 0.0.0.0
+  ssl:
+    enabled: true
+    certificate: /usr/share/kibana/config/certs/kibana.crt
+    key: /usr/share/kibana/config/certs/kibana.key
+elasticsearch:
+  ssl:
+    certificateAuthorities: /usr/share/kibana/config/certs/ca/ca.crt
+  hosts: 
+    - "https://elasticsearch01:9200"
+  username: "kibana_system"
 
 
 ##  instead of using `elasticsearch.password` entry
@@ -19,3 +28,6 @@ elasticsearch.username: "kibana_system"
 
 # kalau menggunakan image kibana versi oss, yg dibawah ini ga perlu
 #xpack.monitoring.ui.container.elasticsearch.enabled: false
+
+## Since environment variables are translated to CLI arguments, 
+## they take precedence over settings configured in kibana.yml.
